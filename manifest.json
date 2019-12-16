@@ -1,0 +1,15 @@
+{
+    "name": "lit_and_dark",
+    "version": "1.0",
+    "description": "Built for Together We Hack 2019",
+    "permissions": [
+      "tabs",
+      "http://*/*",
+      "https://*/*"
+    ],
+    "background": {
+      "scripts": ["background.js"],
+      "persistent": false
+    },
+    "manifest_version": 2
+  }
