@@ -1,6 +1,8 @@
 'use strict';
 
-var url = 'https://api.litndark.xyz/analyze/';
+var url = 'https://47edbf88.ngrok.io/analyze/'
+//'https://6b5b79ba.ngrok.io/analyze/';
+//'https://api.litndark.xyz/analyze/';
 
 function parseMessages(feed) {
     var result = [];
@@ -16,7 +18,7 @@ function parseMessages(feed) {
             var msgWrapper = contentWrapper[0].getElementsByTagName('p')[0];
             //console.log('msgWrapper:', msgWrapper);
             var msgText = msgWrapper.innerHTML;
-            console.log(msgId, msgText);
+            //console.log(msgId, msgText);
 
             result.push({'id': msgId, 'content': msgText});
         }
@@ -26,26 +28,14 @@ function parseMessages(feed) {
 }
 
 function parseResponse(response) {
+    console.log(response);
     if (response.ok) {
-        return response.text();
+        var respText = response.body;
+        console.log(respText);
+        return respText;
     } else {
-        return Promise.reject(new Error(response.statusText));
-    }
-}
-
-async function predictBullying(request) {
-    try {
-        console.log(request);
-        const response = await fetch(url + request.content, {
-            'mode': 'no-cors',
-            'headers': {
-                'Access-Control-Allow-Origin': 'https://api.litndark.xyz/analyze/*'
-            }
-        });
-        const json = await response.text();
-        console.log('Success:', JSON.stringify(json));
-    } catch (error) {
-        console.error('Error:', error);
+        return false;
+        //return new Error(response.statusText);
     }
 }
 
@@ -56,7 +46,7 @@ if (mastodon) {
     var feedMessages = mastodon.getElementsByTagName('article') || [];
     console.log("feed:", feedMessages);
     var requestList = parseMessages(feedMessages);
-    console.log(requestList);
+    //console.log(requestList);
 
     // TODO: Make API call with requestList in JSON body
     var urlList = requestList.map((request) => { 
@@ -68,14 +58,35 @@ if (mastodon) {
     
     // TODO: Add visibility attribute to object based on API response
     // Reflect this visibility in DOM
-    Promise.all(urlList.map(req => {
-        fetch(req.apiURL, {'mode': 'no-cors'})
+    /*var promiseList = urlList.map(req => {
+        return fetch(req.apiURL, {'mode': 'no-cors'})
             .then(parseResponse)
+            .catch(console.log('ERROR'));
+        }
+    );*/
+    //console.log("PROMISES:", promiseList);
+    
+    Promise.all(urlList.map(elem => {
+        //console.log(elem);
+        fetch(elem.apiUrl, {'method': 'GET',
+                'headers': {
+                    'Content-Type': 'application/text'
+                },
+            })
+            .then((response) => {
+                //console.log("resp", response);
+                //var respText = parseResponse(elem, response);
+                elem.malicious = parseResponse(response);
+                console.log("elem", elem);
+                //console.log("text:", respText);
+                //JSONify response, augment urlList object based on ID match
+                //Promise.resolve();
+            })
             .catch(console.log('ERROR'));
         }
     )).then(() => {
         // Toggle visibility
-        console.log('success');
+        console.log('finished making requests');
     });
 
     /*requestList.forEach((request) => {
