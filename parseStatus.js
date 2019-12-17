@@ -1,18 +1,13 @@
 'use strict';
 
 var url = 'https://47edbf88.ngrok.io/analyze/'
-//'https://6b5b79ba.ngrok.io/analyze/';
-//'https://api.litndark.xyz/analyze/';
 
 function parseMessages(feed) {
     var result = [];
 
     Array.from(feed).forEach((msg) => {
-        //console.log(msg);
         var msgId = msg.getAttribute('data-id');
-        //console.log('id:', msgId);
         var contentWrapper = msg.getElementsByClassName('status__content__text');
-        //console.log('contentWrapper', contentWrapper);
 
         if (Array.from(contentWrapper).length > 0) {
             var msgWrapper = contentWrapper[0].getElementsByTagName('p')[0];
@@ -30,8 +25,6 @@ function parseMessages(feed) {
 function parseResponse(response) {
     console.log(response);
     if (response.ok) {
-        var respText = response.body;
-        console.log(respText);
         return respText;
     } else {
         return false;
@@ -42,9 +35,9 @@ function parseResponse(response) {
 var mastodon = document.getElementById("mastodon");
 
 if (mastodon) {
-    console.log("[L&D] this page loaded");
+    //console.log("[L&D] this page loaded");
     var feedMessages = mastodon.getElementsByTagName('article') || [];
-    console.log("feed:", feedMessages);
+    //console.log("feed:", feedMessages);
     var requestList = parseMessages(feedMessages);
     //console.log(requestList);
 
@@ -67,20 +60,21 @@ if (mastodon) {
     //console.log("PROMISES:", promiseList);
     
     Promise.all(urlList.map(elem => {
-        //console.log(elem);
+        //console.log(elem)
         fetch(elem.apiUrl, {'method': 'GET',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
                 'headers': {
                     'Content-Type': 'application/text'
                 },
             })
-            .then((response) => {
-                //console.log("resp", response);
-                //var respText = parseResponse(elem, response);
+            .then(response => {
+                return response.json()
+                    .then((res) => 
+                        console.log(res)
+                    );
                 elem.malicious = parseResponse(response);
                 console.log("elem", elem);
-                //console.log("text:", respText);
-                //JSONify response, augment urlList object based on ID match
-                //Promise.resolve();
             })
             .catch(console.log('ERROR'));
         }
